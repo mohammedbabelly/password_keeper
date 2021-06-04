@@ -40,8 +40,6 @@ class DatabaseHelper {
 
   Future<int> createPassword(Password password) async =>
       await PasswordsTable().createPassword(password, await this.database);
-  Future<Password> getPassword(int passwordid) async =>
-      await PasswordsTable().getPassword(passwordid, await this.database);
   Future<int> updatePassword(Password password) async =>
       await PasswordsTable().updatePassword(password, await this.database);
   Future<int> deletePassword(int passwordId) async =>

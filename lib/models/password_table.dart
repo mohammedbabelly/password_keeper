@@ -1,4 +1,5 @@
 import 'package:get_storage/get_storage.dart';
+import 'package:password_keeper/helpers/hash_password.dart';
 import 'package:sqflite/sqflite.dart';
 import 'password.dart';
 import 'user.dart';
@@ -24,18 +25,16 @@ class PasswordsTable {
       // "FOREIGN KEY ($colUserId) REFERENCES ${UsersTable.tableName} (${UsersTable.colId}) ON DELETE NO ACTION ON UPDATE NO ACTION"
       ")";
   Future<int> createPassword(Password password, Database db) async {
+    password.password =
+        AppEncrypter().encrypt(password.password, password.email);
     var result = await db.insert(tableName, password.toMap());
     print('password $result crated');
     return result;
   }
 
-  Future<Password> getPassword(int passwordId, Database db) async {
-    var result =
-        await db.query(tableName, where: '$colId = ?', whereArgs: [passwordId]);
-    return Password.fromMapObject(result[0]);
-  }
-
   Future<int> updatePassword(Password password, Database db) async {
+    password.password =
+        AppEncrypter().encrypt(password.password, password.email);
     var result = await db.update(tableName, password.toMap(),
         where: '$colId = ?', whereArgs: [password.id]);
     print('password $result has updated');
@@ -58,7 +57,9 @@ class PasswordsTable {
     List<Password> passwordsList = [];
     // For loop to create a 'Note List' from a 'Map List'
     for (int i = 0; i < count; i++) {
-      passwordsList.add(Password.fromMapObject(passwordsMapList[i]));
+      var _pass = Password.fromMapObject(passwordsMapList[i]);
+      _pass.password = AppEncrypter().decrypt(_pass.password, _pass.email);
+      passwordsList.add(_pass);
     }
 
     return passwordsList;

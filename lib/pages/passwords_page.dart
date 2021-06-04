@@ -102,7 +102,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
                       ClipboardData(text: object.password))
                   .whenComplete(() => _showSnackBar(context, "Copied", true))),
           title: Text(object.title),
-          subtitle: Text(object.email),
+          subtitle: Text(object.password),
           trailing: InkWell(
               child: Icon(Icons.delete, color: Colors.red),
               onTap: () async => await _deletePassword(context, object.id)),

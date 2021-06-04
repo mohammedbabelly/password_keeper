@@ -1,3 +1,4 @@
+import 'package:password_keeper/helpers/hash_password.dart';
 import 'package:sqflite/sqflite.dart';
 
 import 'user.dart';
@@ -12,12 +13,15 @@ class UsersTable {
       '$colMasterPassword TEXT)';
 
   Future<int> createUser(User user, Database db) async {
+    user.setMasterPassword =
+        AppEncrypter().encrypt(user.masterPassword, user.email);
     var result = await db.insert(tableName, user.toMap());
     print('user $result created');
     return result;
   }
 
   Future<User> getUser(String email, String password, Database db) async {
+    password = AppEncrypter().encrypt(password, email);
     var result = await db.rawQuery(
         "SELECT * FROM $tableName WHERE $colEmail = ? AND $colMasterPassword = ?",
         [email, password]);
