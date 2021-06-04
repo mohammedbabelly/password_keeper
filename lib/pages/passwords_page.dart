@@ -5,9 +5,12 @@ import 'package:intl/intl.dart';
 import 'package:password_keeper/helpers/database_helper.dart';
 import 'package:password_keeper/models/password.dart';
 import 'package:password_keeper/models/user.dart';
+import 'package:password_keeper/widgets/drawer.dart';
+
+import 'generate_password.dart';
 
 class PasswordsPage extends StatefulWidget {
-  User curUser;
+  final User curUser;
   PasswordsPage(this.curUser);
   @override
   _PasswordsPageState createState() => _PasswordsPageState();
@@ -33,22 +36,30 @@ class _PasswordsPageState extends State<PasswordsPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: _buildAppBar(),
-      body: _buildBody(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async => await _showBottomSheet("Add a new password"),
-        child: Icon(Icons.add),
-      ),
-    );
+  void dispose() {
+    super.dispose();
   }
 
-  //WIDGETS
-  Widget _buildAppBar() => AppBar(
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
         title: Text('Your Passwords'),
         centerTitle: true,
-      );
+        actions: [
+          IconButton(
+              icon: Icon(Icons.pending_actions_sharp),
+              onPressed: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => GeneratePasswordPage())))
+        ],
+      ),
+      body: _buildBody(),
+      floatingActionButton: FloatingActionButton(
+          onPressed: () async => await _showBottomSheet("Add a new password"),
+          child: Icon(Icons.add)),
+      drawer: AppDrawer(widget.curUser),
+    );
+  }
 
   Widget _buildBody() {
     return RefreshIndicator(
@@ -85,13 +96,42 @@ class _PasswordsPageState extends State<PasswordsPage> {
   Widget _buildNoteCard(Password object) => Card(
         elevation: 2.0,
         child: ListTile(
-          leading: IconButton(icon: Icon(Icons.copy), onPressed: null),
+          leading: IconButton(
+              icon: Icon(Icons.copy),
+              onPressed: () async => await Clipboard.setData(
+                      ClipboardData(text: object.password))
+                  .whenComplete(() => _showSnackBar(context, "Copied", true))),
           title: Text(object.title),
           subtitle: Text(object.email),
           trailing: InkWell(
               child: Icon(Icons.delete, color: Colors.red),
               onTap: () async => await _deletePassword(context, object.id)),
           onTap: () async => _showBottomSheet("${object.title}", object),
+        ),
+      );
+
+  Widget _buildTextField(TextEditingController controller, String label,
+          {bool copy = false}) =>
+      Padding(
+        padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
+        child: TextField(
+          controller: controller,
+          cursorColor: Colors.white60,
+          decoration: InputDecoration(
+              labelText: label,
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
+              suffixIcon: copy
+                  ? IconButton(
+                      icon: Icon(Icons.copy),
+                      onPressed: () async {
+                        await Clipboard.setData(
+                                ClipboardData(text: controller.text))
+                            .whenComplete(
+                                () => _showSnackBar(context, "Copied", true));
+                      },
+                    )
+                  : Icon(Icons.add, color: Colors.black)),
         ),
       );
 
@@ -104,19 +144,6 @@ class _PasswordsPageState extends State<PasswordsPage> {
                 : Icon(Icons.close, color: Colors.red)),
         backgroundColor: Color(0xff222222));
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
-
-  Future<List<Password>> _getPasswordsFromDb() async =>
-      await _databaseHelper.getAllPassword();
-
-  Future<void> _deletePassword(BuildContext context, int id) async {
-    int result = await _databaseHelper.deletePassword(id);
-    if (result != 0)
-      setState(() {
-        _showSnackBar(context, "Password deleted successfuly", true);
-      });
-    else
-      _showSnackBar(context, "Could't delete!", false);
   }
 
   Future<void> _showBottomSheet(String title, [Password password]) async {
@@ -195,31 +222,20 @@ class _PasswordsPageState extends State<PasswordsPage> {
         });
   }
 
-  Widget _buildTextField(TextEditingController controller, String label,
-          {bool copy = false}) =>
-      Padding(
-        padding: EdgeInsets.only(top: 10.0, bottom: 10.0),
-        child: TextField(
-          controller: controller,
-          cursorColor: Colors.white60,
-          decoration: InputDecoration(
-              labelText: label,
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
-              suffixIcon: copy
-                  ? IconButton(
-                      icon: Icon(Icons.copy),
-                      onPressed: () async {
-                        await Clipboard.setData(
-                                ClipboardData(text: controller.text))
-                            .whenComplete(
-                                () => _showSnackBar(context, "Copied", true));
-                      },
-                    )
-                  : Icon(Icons.add, color: Colors.black)),
-        ),
-      );
   Future<Null> onRefs() async => setState(() {});
+
+  Future<List<Password>> _getPasswordsFromDb() async =>
+      await _databaseHelper.getAllPassword();
+
+  Future<void> _deletePassword(BuildContext context, int id) async {
+    int result = await _databaseHelper.deletePassword(id);
+    if (result != 0)
+      setState(() {
+        _showSnackBar(context, "Password deleted successfuly", true);
+      });
+    else
+      _showSnackBar(context, "Could't delete!", false);
+  }
 
   Future<void> _savePassword(Password _object) async {
     if ((_object.title.isEmpty ||

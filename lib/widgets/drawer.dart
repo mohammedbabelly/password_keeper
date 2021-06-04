@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:password_keeper/models/user.dart';
+import 'package:password_keeper/pages/generate_password.dart';
 
 class AppDrawer extends StatelessWidget {
   final User user;
@@ -17,8 +18,9 @@ class AppDrawer extends StatelessWidget {
                 Center(child: Text(user.email, style: TextStyle(fontSize: 20))),
           ),
           ListTile(
-            title: Text('Item 1'),
-            onTap: () {},
+            title: Text('Generate Password'),
+            onTap: () => Navigator.push(context,
+                MaterialPageRoute(builder: (_) => GeneratePasswordPage())),
           ),
         ],
       ),
