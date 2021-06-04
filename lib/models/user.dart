@@ -21,6 +21,7 @@ class User {
 
   Map<String, dynamic> toMap() {
     return {
+      'id': _id,
       'email': _email,
       'master_password': _masterpassword,
     };

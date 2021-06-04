@@ -1,5 +1,7 @@
+import 'package:get_storage/get_storage.dart';
 import 'package:sqflite/sqflite.dart';
 import 'password.dart';
+import 'user.dart';
 import 'users_table.dart';
 
 class PasswordsTable {
@@ -47,9 +49,10 @@ class PasswordsTable {
   }
 
   Future<List<Password>> getAllPasswords(Database db) async {
-    List<Map<String, dynamic>> passwordsMapList =
-        await db.rawQuery('SELECT * FROM $tableName');
-    // await db.query(tableName);
+    GetStorage box = GetStorage();
+    var user = User.fromMapObject(box.read('user'));
+    List<Map<String, dynamic>> passwordsMapList = await db
+        .rawQuery('SELECT * FROM $tableName WHERE $colUserId = ?', [user.id]);
     int count = passwordsMapList.length;
     print('count = $count');
     List<Password> passwordsList = [];

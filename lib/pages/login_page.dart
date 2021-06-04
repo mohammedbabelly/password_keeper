@@ -31,6 +31,7 @@ class _LoginPageState extends State<LoginPage> {
   Future<String> _login(LoginData data) async {
     try {
       user = await _databaseHelper.getUser(data.name, data.password);
+      box.write('user', user.toMap());
       return user != null ? null : "Invalid email or password!";
     } catch (e) {
       print(e.toString());
@@ -45,6 +46,9 @@ class _LoginPageState extends State<LoginPage> {
       if (id != null) {
         user.setId = id;
         box.write('user', user.toMap());
+        var n = box.read('user');
+        print(n);
+        // return '';
       }
       return id != null ? null : "Error creating a new user!";
     } catch (e) {
