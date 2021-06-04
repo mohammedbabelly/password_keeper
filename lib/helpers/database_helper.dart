@@ -21,8 +21,8 @@ class DatabaseHelper {
     String path = directory.path + dbName;
 
     // Open/create the database at a given path
-    var notesDatabase =
-        await openDatabase(path, version: 1, onCreate: _createDb);
+    var notesDatabase = await openDatabase(path,
+        version: 1, onCreate: _createDb, onConfigure: _onConfigure);
     return notesDatabase;
   }
 
@@ -33,8 +33,8 @@ class DatabaseHelper {
 
   Future<int> createUser(User user) async =>
       await UsersTable().createUser(user, await this.database);
-  Future<User> getUser(int userId) async =>
-      await UsersTable().getUser(userId, await this.database);
+  Future<User> getUser(String email, String password) async =>
+      await UsersTable().getUser(email, password, await this.database);
   Future<int> updateUser(User user) async =>
       await UsersTable().updateUser(user, await this.database);
 
@@ -48,4 +48,8 @@ class DatabaseHelper {
       await PasswordsTable().deletePassword(passwordId, await this.database);
   Future<List<Password>> getAllPassword() async =>
       await PasswordsTable().getAllPasswords(await this.database);
+
+  static Future _onConfigure(Database db) async {
+    await db.execute('PRAGMA foreign_keys = ON');
+  }
 }

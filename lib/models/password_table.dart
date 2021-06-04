@@ -11,16 +11,19 @@ class PasswordsTable {
   static const String colEmail = "email";
   static const String colNote = "note";
   static const String colDate = "date";
-  static const String createCommand = 'CREATE TABLE $tableName('
-      '$colId INTEGER PRIMARY KEY AUTOINCREMENT, '
-      'FOREIGN KEY ($colUserId) REFERENCES ${UsersTable.tableName} (${UsersTable.colId}) ON DELETE NO ACTION ON UPDATE NO ACTION, '
-      '$colTitle TEXT, '
-      '$colPassword TEXT, '
-      '$colEmail TEXT, '
-      '$colNote TEXT, '
-      '$colDate TEXT';
+  static const String createCommand = "CREATE TABLE $tableName("
+      "$colId INTEGER PRIMARY KEY AUTOINCREMENT, "
+      "$colUserId INTEGER, "
+      "$colTitle TEXT, "
+      "$colPassword TEXT, "
+      "$colEmail TEXT, "
+      "$colNote TEXT, "
+      "$colDate TEXT"
+      // "FOREIGN KEY ($colUserId) REFERENCES ${UsersTable.tableName} (${UsersTable.colId}) ON DELETE NO ACTION ON UPDATE NO ACTION"
+      ")";
   Future<int> createPassword(Password password, Database db) async {
     var result = await db.insert(tableName, password.toMap());
+    print('password $result crated');
     return result;
   }
 
@@ -33,6 +36,7 @@ class PasswordsTable {
   Future<int> updatePassword(Password password, Database db) async {
     var result = await db.update(tableName, password.toMap(),
         where: '$colId = ?', whereArgs: [password.id]);
+    print('password $result has updated');
     return result;
   }
 
@@ -44,10 +48,10 @@ class PasswordsTable {
 
   Future<List<Password>> getAllPasswords(Database db) async {
     List<Map<String, dynamic>> passwordsMapList =
-        // await db.rawQuery('SELECT * FROM $tableName');
-        await db.query(tableName);
+        await db.rawQuery('SELECT * FROM $tableName');
+    // await db.query(tableName);
     int count = passwordsMapList.length;
-
+    print('count = $count');
     List<Password> passwordsList = [];
     // For loop to create a 'Note List' from a 'Map List'
     for (int i = 0; i < count; i++) {
