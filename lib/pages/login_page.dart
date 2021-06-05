@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_login/flutter_login.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:password_keeper/helpers/database_helper.dart';
 import 'package:password_keeper/models/user.dart';
 
@@ -23,9 +24,30 @@ class _LoginPageState extends State<LoginPage> {
   GetStorage box = GetStorage();
   @override
   void initState() {
+    _checkLocalAuth();
     super.initState();
     _databaseHelper = new DatabaseHelper();
     _databaseHelper.initializeDatabase();
+  }
+
+  Future<void> _checkLocalAuth() async {
+    await box.initStorage;
+    user = User.fromMapObject(box.read('user'));
+    if (user != null) {
+      LocalAuthentication localAuth = LocalAuthentication();
+      if (await localAuth.canCheckBiometrics) {
+        bool didAuthenticate = await localAuth.authenticate(
+            localizedReason:
+                'Please authenticate to show your saved passwords');
+        print(didAuthenticate);
+        if (didAuthenticate) {
+          Navigator.of(context).pushReplacement(MaterialPageRoute(
+            builder: (context) => PasswordsPage(user),
+          ));
+        }
+      }
+    }
+    print('user not found');
   }
 
   Future<String> _login(LoginData data) async {
@@ -47,7 +69,7 @@ class _LoginPageState extends State<LoginPage> {
         user.setId = id;
         box.write('user', user.toMap());
         var n = box.read('user');
-        print(n);
+        print('user = $user');
         // return '';
       }
       return id != null ? null : "Error creating a new user!";
