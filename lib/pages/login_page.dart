@@ -34,17 +34,22 @@ class _LoginPageState extends State<LoginPage> {
     await box.initStorage;
     user = User.fromMapObject(box.read('user'));
     if (user != null) {
-      LocalAuthentication localAuth = LocalAuthentication();
-      if (await localAuth.canCheckBiometrics) {
-        bool didAuthenticate = await localAuth.authenticate(
-            localizedReason:
-                'Please authenticate to show your saved passwords');
-        print(didAuthenticate);
-        if (didAuthenticate) {
-          Navigator.of(context).pushReplacement(MaterialPageRoute(
-            builder: (context) => PasswordsPage(user),
-          ));
+      try {
+        LocalAuthentication localAuth = LocalAuthentication();
+        if (await localAuth.canCheckBiometrics &&
+            await localAuth.isDeviceSupported()) {
+          bool didAuthenticate = await localAuth.authenticate(
+              localizedReason:
+                  'Please authenticate to show your saved passwords');
+          print(didAuthenticate);
+          if (didAuthenticate) {
+            Navigator.of(context).pushReplacement(MaterialPageRoute(
+              builder: (context) => PasswordsPage(user),
+            ));
+          }
         }
+      } catch (_) {
+        print(_);
       }
     }
     print('user not found');
@@ -93,17 +98,6 @@ class _LoginPageState extends State<LoginPage> {
       onLogin: _login,
       onSignup: _signUp,
       hideForgotPasswordButton: true,
-      loginProviders: <LoginProvider>[
-        LoginProvider(
-          icon: Icons.fingerprint,
-          callback: () async {
-            print('start google sign in');
-            await Future.delayed(loginTime);
-            print('stop google sign in');
-            return "null";
-          },
-        ),
-      ],
       onSubmitAnimationCompleted: () {
         Navigator.of(context).pushReplacement(MaterialPageRoute(
           builder: (context) => PasswordsPage(user),

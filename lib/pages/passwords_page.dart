@@ -191,8 +191,7 @@ class _PasswordsPageState extends State<PasswordsPage> {
                           child: Text(title),
                         ),
                         _buildTextField(titleController, 'Title'),
-                        _buildTextField(passwordController, 'Password',
-                            copy: true),
+                        _buildTextField(passwordController, 'Password'),
                         _buildTextField(emailController, 'Email or Username'),
                         _buildTextField(noteController, 'Any Notes'),
                         TextButton.icon(
